@@ -15,7 +15,7 @@ from sqlalchemy.sql import text
 from sqlalchemy.types import JSON, Float, Text, DateTime, Integer
 from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
 
-from arches_rascoll import general_configs
+from arches_afs import general_configs
 
 
 def make_full_path_filename(path, filename):
