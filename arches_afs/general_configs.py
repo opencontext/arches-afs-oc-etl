@@ -23,21 +23,28 @@ ARCHES_V8_RESOURCE_INSTANCE_LIFECYCLE_STATE_ID = '7e3cce56-fbfb-4a4b-8e83-59b9f9
 
 current_directory = os.getcwd()
 DATA_DIR = os.getenv('AFS_ETL_DIR', os.path.join(current_directory, 'data'))
-RAW_IMPORT_CSV = os.path.join(DATA_DIR, 'gci-all-orig.csv')
+RAW_IMPORT_CSV = os.path.join(DATA_DIR, 'oc-sherd-data.csv')
 ARCHES_INSERT_SQL_PATH =  os.path.join(DATA_DIR, 'etl_sql.txt')
 
 STAGING_SCHEMA_NAME = 'staging'
 
 
+GRAPH_PUBLICATION_ID = '8316a878-4c8f-11f0-be9e-020539808477'
 
 # The UUID for the English language value. This is the prefLabel relates to the
 # English concept (id: '38729dbe-6d1c-48ce-bf47-e2a18945600e')
 ENG_VALUE_UUID = 'bc35776b-996f-4fc1-bd25-9f6432c1f349'
+UNDET_LANG_VALUE_UUID = 'dcfb76cd-dd1e-4d45-bb0a-d0f9de3e1b8f'
 
 # These UUIDs are actually for the prefLabel value that is related to the concepts
 # for these types... Again, a reminder about this likely point of confusion.
+PRIMARY_NAME_TYPE_UUID = 'e7d4b0bf-f37a-4af3-aa0b-4f63152ef9f6'
 PREFERRED_TERM_TYPE_UUID = '8f40c740-3c02-4839-b1a4-f1460823a9fe'
 ALT_NAME_TYPE_UUID = '0798bf2c-ab07-43d7-81f4-f1e2d20251a1'
+
+PRIMARY_ID_TYPE_VALUE_UUID = 'ae7f2811-3fee-4624-bc74-9451bd05be2d'
+
+
 
 TILE_DATA_COPY_FLAG = '----COPY:stage_targ_field----'
 
@@ -79,15 +86,15 @@ def make_lang_dict_value(value, lang='en'):
 
 # For this demo, we're using the AfRSC resource and sample collection resource model.
 # Alter this as needed to fit your own
-PHYS_UUID = '9519b173-b25b-11e9-8824-a4d18cec433a'
+PHYS_UUID = '9519cb4f-b25b-11e9-8c7b-a4d18cec433a'
 PHYS_MODEL_NAME = 'physical_thing'
 
 
 
 
-PHYS_MAPPING_CONFIGS = {
+PHYS_NAME_IDS_MAPPING_CONFIGS = {
     'model_id': PHYS_UUID,
-    'staging_table': 'phys',
+    'staging_table': 'phys_name_ids',
     'model_staging_schema': PHYS_MODEL_NAME,
     'raw_pk_col': 'item_uuid',
     'mappings': [
@@ -101,11 +108,50 @@ PHYS_MAPPING_CONFIGS = {
             'make_tileid': False,
             'default_values': [
                 ('graphid', UUID, PHYS_UUID,),
-                ('graphpublicationid', UUID, 'a4ea5a7a-d7f0-11ef-a75a-0275dc2ded29',),
+                ('graphpublicationid', UUID, GRAPH_PUBLICATION_ID,),
                 ('principaluser_id', Integer, 1,),
             ], 
         },
-        
+        {
+            'raw_col': 'Item Label',
+            'targ_table': 'name',
+            'stage_field_prefix': 'item_label_',
+            'value_transform': make_lang_dict_value,
+            'targ_field': 'name_content',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'default_values': [
+                ('name_type_', ARRAY(UUID), [PRIMARY_NAME_TYPE_UUID ],),
+                ('name_language_', ARRAY(UUID), [UNDET_LANG_VALUE_UUID],),
+                ('nodegroupid', UUID, 'b9c1ced7-b497-11e9-a4da-a4d18cec433a',),
+            ], 
+        },
+        {
+            'raw_col': 'URI',
+            'targ_table': 'identifier',
+            'stage_field_prefix': 'id_uri_',
+            'value_transform': make_lang_dict_value,
+            'targ_field': 'identifier_content',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'default_values': [
+                ('identifier_type', ARRAY(UUID), [PRIMARY_ID_TYPE_VALUE_UUID],),
+                ('nodegroupid', UUID, '22c150ca-b498-11e9-9adc-a4d18cec433a',),
+            ],
+        },
+        {
+            'raw_col': 'Citation URI',
+            'targ_table': 'identifier',
+            'stage_field_prefix': 'id_ark_',
+            'value_transform': make_lang_dict_value,
+            'targ_field': 'identifier_content',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'default_values': [
+                ('identifier_type', ARRAY(UUID),  [PRIMARY_ID_TYPE_VALUE_UUID],),
+                ('nodegroupid', UUID, '22c150ca-b498-11e9-9adc-a4d18cec433a',),
+            ],
+        },
     ],
 }
 
@@ -118,7 +164,7 @@ PHYS_MAPPING_CONFIGS = {
 
 ALL_MAPPING_CONFIGS = [
     # Create resource instances for different models
-    PHYS_MAPPING_CONFIGS,
+    PHYS_NAME_IDS_MAPPING_CONFIGS,
 ]
 
 
