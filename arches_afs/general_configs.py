@@ -14,7 +14,7 @@ from sqlalchemy.dialects.postgresql import UUID, ARRAY, JSONB
 
 # Note, the database credentials in the DB URL are set to the default values for a local Arches install, 
 # these should be changed to match your own database and set with the ARCHES_DB_URL environment variable.
-ARCHES_DB_URL = os.getenv('ARCHES_DB_URL', 'postgresql://postgres:postgis@127.0.0.1:5434/rascoll')
+ARCHES_DB_URL = os.getenv('ARCHES_DB_URL', 'postgresql://postgres:postgis@127.0.0.1:5434/afs_demo')
 
 ARCHES_V8 = False
 # UUID of the resource_instance_lifecycle_state_id for the Arches 8.0.0 release
@@ -28,9 +28,58 @@ ARCHES_INSERT_SQL_PATH =  os.path.join(DATA_DIR, 'etl_sql.txt')
 
 STAGING_SCHEMA_NAME = 'staging'
 
+
+
+# The UUID for the English language value. This is the prefLabel relates to the
+# English concept (id: '38729dbe-6d1c-48ce-bf47-e2a18945600e')
+ENG_VALUE_UUID = 'bc35776b-996f-4fc1-bd25-9f6432c1f349'
+
+# These UUIDs are actually for the prefLabel value that is related to the concepts
+# for these types... Again, a reminder about this likely point of confusion.
+PREFERRED_TERM_TYPE_UUID = '8f40c740-3c02-4839-b1a4-f1460823a9fe'
+ALT_NAME_TYPE_UUID = '0798bf2c-ab07-43d7-81f4-f1e2d20251a1'
+
+TILE_DATA_COPY_FLAG = '----COPY:stage_targ_field----'
+
+
+DATA_TYPES_SQL = {
+    JSONB: 'jsonb',
+    UUID: 'uuid',
+    Integer: 'integer',
+    Float: 'float',
+    Numeric: 'numeric',
+    Text: 'text',
+    DateTime: 'timestamp',
+    ARRAY(UUID): 'uuid[]',
+}
+
+
+REL_LINK_REL_TYPE_ID = 'ac41d9be-79db-4256-b368-2f4559cfbe55'
+REL_LINK_INVERSE_REL_TYPE_ID = 'ac41d9be-79db-4256-b368-2f4559cfbe55'
+
+
+
+def copy_value(value):
+    if isinstance(value, dict):
+        return copy.deepcopy(value)
+    if isinstance(value, list):
+        return copy.deepcopy(value)
+    return value
+
+def make_lang_dict_value(value, lang='en'):
+    return {
+        lang: {
+            'value': str(value),
+            'direction': 'ltr',
+        }
+    }
+
+
+
+
 # For this demo, we're using the AfRSC resource and sample collection resource model.
 # Alter this as needed to fit your own
-PHYS_UUID = ''
+PHYS_UUID = '9519b173-b25b-11e9-8824-a4d18cec433a'
 PHYS_MODEL_NAME = 'physical_thing'
 
 
@@ -40,10 +89,10 @@ PHYS_MAPPING_CONFIGS = {
     'model_id': PHYS_UUID,
     'staging_table': 'phys',
     'model_staging_schema': PHYS_MODEL_NAME,
-    'raw_pk_col': 'phys_uuid',
+    'raw_pk_col': 'item_uuid',
     'mappings': [
         {
-            'raw_col': 'phys_uuid',
+            'raw_col': 'item_uuid',
             'targ_table': 'instances',
             'stage_field_prefix': '',
             'value_transform': copy_value,
@@ -61,129 +110,6 @@ PHYS_MAPPING_CONFIGS = {
 }
 
 
-#---------------------------------#
-#- PERSON CONFIGS ----------------#
-#---------------------------------#
-PERSON_MODEL_UUID = 'e1d0ea1a-d770-11ef-8c40-0275dc2ded29'
-PERSON_MODEL_NAME = 'person'
-IMPORT_RAW_PERSON_CSV = os.path.join(DATA_DIR, 'gci-all-persons.csv')
-
-FULLNAME_TYPE_VALUE_UUID = '828a2e14-8976-4d99-96d0-aeb1bd4223cc'
-
-PERSON_NAME_TILE_DATA = {
-    "e1d1d63c-d770-11ef-8c40-0275dc2ded29": [FULLNAME_TYPE_VALUE_UUID,], # type
-    "e1d1d7ea-d770-11ef-8c40-0275dc2ded29": None, # source
-    "e1d1cc64-d770-11ef-8c40-0275dc2ded29": None, # _label
-    "e1d1a70c-d770-11ef-8c40-0275dc2ded29": None, # part
-    "e1d1cb88-d770-11ef-8c40-0275dc2ded29": [ENG_VALUE_UUID,], # language
-    "e1d1ddda-d770-11ef-8c40-0275dc2ded29": TILE_DATA_COPY_FLAG,
-}
-
-PERSON_MAPPING_CONFIGS = {
-    'model_id': PERSON_MODEL_UUID,
-    'staging_table': PERSON_MODEL_NAME,
-    'model_staging_schema': PERSON_MODEL_NAME,
-    'raw_pk_col': 'person_uuid',
-    'load_path': IMPORT_RAW_PERSON_CSV,
-    'mappings': [
-        {
-            'raw_col': 'person_uuid',
-            'targ_table': 'instances',
-            'stage_field_prefix': '',
-            'value_transform': copy_value,
-            'targ_field': 'resourceinstanceid',
-            'data_type': UUID,
-            'make_tileid': False,
-            'default_values': [
-                ('graphid', UUID, PERSON_MODEL_UUID,),
-                ('graphpublicationid', UUID, '3fd6e10e-d8c6-11ef-9ef7-0275dc2ded29',),
-                ('principaluser_id', Integer, 1,),
-            ], 
-        },
-        {
-            'raw_col': 'person_name',
-            'targ_table': 'name',
-            'stage_field_prefix': 'person_name_',
-            'value_transform': make_lang_dict_value,
-            'targ_field': 'name_content',
-            'data_type': JSONB,
-            'make_tileid': True,
-            'default_values': [
-                ('name_type', ARRAY(UUID), [FULLNAME_TYPE_VALUE_UUID],),
-                ('name_language', ARRAY(UUID), [ENG_VALUE_UUID],),
-                ('nodegroupid', UUID, 'e1d0f244-d770-11ef-8c40-0275dc2ded29',),
-            ],
-            'tile_data': PERSON_NAME_TILE_DATA, 
-        },
-        
-    ],
-}
-
-
-
-#---------------------------------#
-#- SET CONFIGS -------------------#
-#---------------------------------#
-SET_MODEL_UUID = 'da0ed58e-d771-11ef-af99-0275dc2ded29'
-SET_MODEL_NAME = 'collection_or_set'
-IMPORT_RAW_SET_CSV = os.path.join(DATA_DIR, 'gci-all-sets.csv')
-
-GCI_REF_COL_SET_UUID = 'e6d28c12-9efa-4d22-8ac9-acdb8a4f6087'
-
-SET_DATA = [
-    {
-        'set_uuid': GCI_REF_COL_SET_UUID, 
-        'set_name': 'Getty Conservation Institute (GCI) Reference Collection',
-    },
-]
-
-SET_NAME_TILE_DATA = {
-    "da0f4e7e-d771-11ef-af99-0275dc2ded29": [PREFERRED_TERM_TYPE_UUID,], # type
-    "da0f3f24-d771-11ef-af99-0275dc2ded29": None, # source
-    "da0f311e-d771-11ef-af99-0275dc2ded29": None, # _label
-    "da0f3740-d771-11ef-af99-0275dc2ded29": [ENG_VALUE_UUID,], # language
-    "da0f5676-d771-11ef-af99-0275dc2ded29": TILE_DATA_COPY_FLAG,
-}
-
-SET_MAPPING_CONFIGS = {
-    'model_id': SET_MODEL_UUID,
-    'staging_table': SET_MODEL_NAME,
-    'model_staging_schema': SET_MODEL_NAME,
-    'raw_pk_col': 'set_uuid',
-    'load_path': IMPORT_RAW_SET_CSV,
-    'mappings': [
-        {
-            'raw_col': 'set_uuid',
-            'targ_table': 'instances',
-            'stage_field_prefix': '',
-            'value_transform': copy_value,
-            'targ_field': 'resourceinstanceid',
-            'data_type': UUID,
-            'make_tileid': False,
-            'default_values': [
-                ('graphid', UUID, SET_MODEL_UUID,),
-                ('graphpublicationid', UUID, '3fd6e10e-d8c6-11ef-9ef7-0275dc2ded29',),
-                ('principaluser_id', Integer, 1,),
-            ], 
-        },
-        {
-            'raw_col': 'set_name',
-            'targ_table': 'name',
-            'stage_field_prefix': '',
-            'value_transform': make_lang_dict_value,
-            'targ_field': 'name_content',
-            'data_type': JSONB,
-            'make_tileid': True,
-            'default_values': [
-                ('name_type', ARRAY(UUID), [PREFERRED_TERM_TYPE_UUID],),
-                ('name_language', ARRAY(UUID), [ENG_VALUE_UUID],),
-                ('nodegroupid', UUID, 'da0ef9d8-d771-11ef-af99-0275dc2ded29',),
-            ],
-            'tile_data':SET_NAME_TILE_DATA, 
-        },
-        
-    ],
-}
 
 
 
@@ -192,7 +118,7 @@ SET_MAPPING_CONFIGS = {
 
 ALL_MAPPING_CONFIGS = [
     # Create resource instances for different models
-    
+    PHYS_MAPPING_CONFIGS,
 ]
 
 
@@ -201,12 +127,5 @@ ALL_MAPPING_CONFIGS = [
 ARCHES_REL_VIEW_PREP_SQLS = [
     f"""
     SELECT __arches_create_resource_model_views('{PHYS_UUID}');
-    """,
-    
-    f"""
-    SELECT __arches_create_resource_model_views('{PERSON_MODEL_UUID}');
-    """,
-    f"""
-    SELECT __arches_create_resource_model_views('{SET_MODEL_UUID}');
     """,
 ]
