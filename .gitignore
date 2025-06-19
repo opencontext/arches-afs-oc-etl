@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# WSL files
+*.Zone.Identifier
+
 # C extensions
 *.so
 
