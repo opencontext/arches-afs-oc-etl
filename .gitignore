@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 # WSL files
-*.Zone.Identifier
+*Zone.Identifier
 
 # C extensions
 *.so
