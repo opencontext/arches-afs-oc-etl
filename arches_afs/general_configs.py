@@ -160,6 +160,87 @@ PHYS_NAME_IDS_MAPPING_CONFIGS = {
 
 
 
+DIG_RES_UUID = '707cbd78-ca7a-11e9-990b-a4d18cec433a'
+DIG_RES_MODEL_NAME = 'digital_resource'
+
+IMPORT_IMAGES_CSV = os.path.join(DATA_DIR, 'oc-sherd-images.csv')
+
+DIG_RES_IDS_MAPPING_CONFIGS = {
+    'model_id': DIG_RES_UUID,
+    'staging_table': 'dig_res_name_ids_rels',
+    'model_staging_schema': DIG_RES_MODEL_NAME,
+    'raw_pk_col': 'media_uuid',
+    'load_path': IMPORT_IMAGES_CSV,
+    'mappings': [
+        {
+            'raw_col': 'media_uuid',
+            'targ_table': 'instances',
+            'stage_field_prefix': '',
+            'value_transform': copy_value,
+            'targ_field': 'resourceinstanceid',
+            'data_type': UUID,
+            'make_tileid': False,
+            'default_values': [
+                ('graphid', UUID, DIG_RES_UUID,),
+                ('graphpublicationid', UUID, GRAPH_PUBLICATION_ID,),
+                ('principaluser_id', Integer, 1,),
+            ], 
+        },
+        {
+            'raw_col': 'media_label',
+            'targ_table': 'name',
+            'stage_field_prefix': 'media_label_',
+            'value_transform': make_lang_dict_value,
+            'targ_field': 'name_content',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'default_values': [
+                ('name_type', ARRAY(UUID), [PRIMARY_NAME_TYPE_UUID ],),
+                ('name_language', ARRAY(UUID), [ENG_VALUE_UUID],),
+                ('nodegroupid', UUID, 'd2fdae3d-ca7a-11e9-ad84-a4d18cec433a',),
+            ], 
+        },
+        {
+            'raw_col': 'media_uri',
+            'targ_table': 'identifier',
+            'stage_field_prefix': 'id_uri_',
+            'value_transform': make_lang_dict_value,
+            'targ_field': 'identifier_content',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'default_values': [
+                ('identifier_type', ARRAY(UUID), [PRIMARY_ID_TYPE_VALUE_UUID],),
+                ('nodegroupid', UUID, '22c150ca-b498-11e9-9adc-a4d18cec433a',),
+            ],
+        },
+        {
+            'raw_col': 'media_ark',
+            'targ_table': 'identifier',
+            'stage_field_prefix': 'id_ark_',
+            'value_transform': make_lang_dict_value,
+            'targ_field': 'identifier_content',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'default_values': [
+                ('identifier_type', ARRAY(UUID),  [PRIMARY_ID_TYPE_VALUE_UUID],),
+                ('nodegroupid', UUID, '22c150ca-b498-11e9-9adc-a4d18cec433a',),
+            ],
+        },
+        {
+            'raw_col': 'media_type_afs_uuid',
+            'targ_table': 'type',
+            'stage_field_prefix': 'type_',
+            'value_transform': copy_value,
+            'targ_field': 'type',
+            'data_type': ARRAY(UUID),
+            'make_tileid': True,
+            'default_values': [
+                ('nodegroupid', UUID, '09c1778a-ca7b-11e9-860b-a4d18cec433a',),
+            ],
+        },
+    ],
+}
+
 
 
 ALL_MAPPING_CONFIGS = [
@@ -173,5 +254,8 @@ ALL_MAPPING_CONFIGS = [
 ARCHES_REL_VIEW_PREP_SQLS = [
     f"""
     SELECT __arches_create_resource_model_views('{PHYS_UUID}');
+    """,
+    f"""
+    SELECT __arches_create_resource_model_views('{DIG_RES_UUID}');
     """,
 ]

@@ -124,3 +124,27 @@ def get_card_data_for_node_in_graph(node_alias, graph_name):
     if len(d_list) == 0:
         return None
     return d_list[0]
+
+
+def make_jpg_file_obj(
+    file_name,
+    file_id,
+    filesize,
+):
+    """Make a dictionary for the related object"""
+    obj = {
+        "url": f"/files/{file_id}",
+        "name": file_name,
+        "path": f"uploadedfiles/{file_name}",
+        "size": filesize,
+        "type": "image/jpeg",
+        "index": 0,
+        "status": "uploaded",
+        # "content":"blob:http://127.0.0.1:8004/86096968-f210-4b25-9ed8-4f4adc878a92",
+        "content": None,
+        "file_id": file_id,
+        "accepted": True,
+        "renderer": "5e05aa2e-5db0-4922-8938-b4d2b7919733",
+        "lastModified":1750097377754
+    }
+    return obj
