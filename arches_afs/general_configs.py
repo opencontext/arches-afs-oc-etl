@@ -81,7 +81,8 @@ def make_lang_dict_value(value, lang='en'):
         }
     }
 
-
+def make_empty_dict(value):
+    return {}
 
 
 # For this demo, we're using the AfRSC resource and sample collection resource model.
@@ -161,7 +162,7 @@ PHYS_NAME_IDS_MAPPING_CONFIGS = {
 
 
 DIG_RES_UUID = '707cbd78-ca7a-11e9-990b-a4d18cec433a'
-DIG_RES_MODEL_NAME = 'digital_resource'
+DIG_RES_MODEL_NAME = 'digital_resources'
 
 IMPORT_IMAGES_CSV = os.path.join(DATA_DIR, 'oc-sherd-images.csv')
 
@@ -200,19 +201,7 @@ DIG_RES_IDS_MAPPING_CONFIGS = {
                 ('nodegroupid', UUID, 'd2fdae3d-ca7a-11e9-ad84-a4d18cec433a',),
             ], 
         },
-        {
-            'raw_col': 'media_uri',
-            'targ_table': 'identifier',
-            'stage_field_prefix': 'id_uri_',
-            'value_transform': make_lang_dict_value,
-            'targ_field': 'identifier_content',
-            'data_type': JSONB,
-            'make_tileid': True,
-            'default_values': [
-                ('identifier_type', ARRAY(UUID), [PRIMARY_ID_TYPE_VALUE_UUID],),
-                ('nodegroupid', UUID, '22c150ca-b498-11e9-9adc-a4d18cec433a',),
-            ],
-        },
+
         {
             'raw_col': 'media_ark',
             'targ_table': 'identifier',
@@ -238,14 +227,82 @@ DIG_RES_IDS_MAPPING_CONFIGS = {
                 ('nodegroupid', UUID, '09c1778a-ca7b-11e9-860b-a4d18cec433a',),
             ],
         },
+        {
+            'raw_col': 'file_id',
+            'targ_table': 'file',
+            'stage_field_prefix': 'file_',
+            'value_transform': copy_value,
+            'targ_field': 'file',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'make_file': {
+                'raw_filename_col': 'afs_filename',
+                'raw_file_id_col': 'file_id',
+                'raw_filesize_col': 'filesize',
+                'mimetype': 'image/jpeg',
+            },
+            'default_values': [
+                ('nodegroupid', UUID, '09c1778a-ca7b-11e9-860b-a4d18cec433a',),
+            ],
+        },
     ],
 }
 
+
+PHYS_REL_DIG_RES_MAPPING_CONFIGS = {
+    'model_id': PHYS_UUID,
+    'staging_table': 'phys_rel_dig_res',
+    'model_staging_schema': PHYS_MODEL_NAME,
+    'raw_pk_col': 'item_uuid',
+    'load_path': IMPORT_IMAGES_CSV,
+    'mappings': [
+        {
+            'raw_col': 'item_uuid',
+            'targ_table': 'instances',
+            'stage_field_prefix': '',
+            'value_transform': copy_value,
+            'targ_field': 'resourceinstanceid',
+            'data_type': UUID,
+            'make_tileid': False,
+            'default_values': [
+                ('graphid', UUID, PHYS_UUID,),
+                ('graphpublicationid', UUID, GRAPH_PUBLICATION_ID,),
+                ('principaluser_id', Integer, 1,),
+            ], 
+        },
+        {
+            'raw_col': 'dig_ref_media_type_afs_uuid',
+            'targ_table': 'digital_reference',
+            'stage_field_prefix': 'type_',
+            'value_transform': copy_value,
+            'targ_field': 'digital_reference_type',
+            'data_type': UUID,
+            'make_tileid': True,
+            'default_values': [
+                ('nodegroupid', UUID, '8a4ad932-8d59-11eb-a9c4-faffc265b501',),
+            ],
+            'related_resources': [
+                {
+                    'group_source_field': 'digital_source_',
+                    'multi_value': True,
+                    'targ_field': 'digital_source',
+                    'source_field_from_uuid': 'resourceinstanceid',
+                    'source_field_to_uuid': 'media_uuid',
+                    'rel_type_id': 'be3f33e9-216d-4355-8766-aced1e95616c',
+                    'inverse_rel_type_id': 'ff6a0510-6c91-4c45-8c67-dbbcf8d7d7fa',
+                    'rel_nodeid': 'a298ee52-8d59-11eb-a9c4-faffc265b501',
+                },
+            ],
+        },
+    ],
+}
 
 
 ALL_MAPPING_CONFIGS = [
     # Create resource instances for different models
     PHYS_NAME_IDS_MAPPING_CONFIGS,
+    DIG_RES_IDS_MAPPING_CONFIGS,
+    PHYS_REL_DIG_RES_MAPPING_CONFIGS,
 ]
 
 

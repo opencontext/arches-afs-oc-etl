@@ -127,6 +127,19 @@ def prep_transformed_data(df, configs):
             # then moved into Arches
             all_transformed_values = []
             transformed_value = make_transformed_value(act_raw_value, data_type, value_transform)
+            if mapping.get('make_file'):
+                file_config = mapping.get('make_file')
+                file_dict = utilities.make_file_dict(
+                    file_name=row[file_config.get('raw_filename_col')],
+                    file_id=row[file_config.get('raw_file_id_col')],
+                    filesize=row[file_config.get('raw_filesize_col')],
+                    mimetype=file_config.get('mimetype', 'application/octet-stream'),
+                )
+                transformed_value =[file_dict]
+                col_data_types['sql_file_id'] = UUID
+                col_data_types['sql_file_path'] = Text
+                dict_rows[raw_pk]['sql_file_id'] = file_dict.get('file_id')
+                dict_rows[raw_pk]['sql_file_path'] = file_dict.get('path')
             all_transformed_values.append(transformed_value)
             other_tile_col_values = []
             if mapping.get('tile_other_fields'):
@@ -468,6 +481,22 @@ def prepare_all_sql_inserts(
                 ;
                 """
                 sqls.append(sql)
+
+                if mapping.get('make_file'):
+                    file_sql = f"""
+                    INSERT INTO files (
+                        fileid, 
+                        path, 
+                        tileid
+                    ) SELECT
+                        {source_tab}.sql_file_id::uuid,
+                        {source_tab}.sql_file_path,
+                        {source_tab}.{staging_tileid_field}::uuid
+                    FROM {source_tab}
+                    WHERE {source_tab}.{staging_tileid_field}::uuid NOT IN (SELECT tileid FROM files);
+                    """
+                    sqls.append(file_sql)
+
                 if not mapping.get('tile_data'):
                     # No need to do a SQL UPDATE on the tile data.
                     continue
@@ -488,6 +517,7 @@ def prepare_all_sql_inserts(
 
                 """
                 sqls.append(tile_sql)
+
             start += increment
 
     if general_configs.ARCHES_V8:

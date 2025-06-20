@@ -126,10 +126,11 @@ def get_card_data_for_node_in_graph(node_alias, graph_name):
     return d_list[0]
 
 
-def make_jpg_file_obj(
+def make_file_dict(
     file_name,
     file_id,
     filesize,
+    mimetype,
 ):
     """Make a dictionary for the related object"""
     obj = {
@@ -137,7 +138,7 @@ def make_jpg_file_obj(
         "name": file_name,
         "path": f"uploadedfiles/{file_name}",
         "size": filesize,
-        "type": "image/jpeg",
+        "type": mimetype,
         "index": 0,
         "status": "uploaded",
         # "content":"blob:http://127.0.0.1:8004/86096968-f210-4b25-9ed8-4f4adc878a92",

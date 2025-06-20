@@ -122,6 +122,10 @@ $$ language plpgsql;
     SELECT __arches_create_resource_model_views('9519cb4f-b25b-11e9-8c7b-a4d18cec433a');
     
 
+
+    SELECT __arches_create_resource_model_views('707cbd78-ca7a-11e9-990b-a4d18cec433a');
+    
+
 /* ---------------------------------------------------------------------------------- */ 
 
 
@@ -212,6 +216,184 @@ id_ark_nodegroupid::uuid
 (staging.phys_name_ids.id_ark_tileid::uuid IS NOT NULL) AND 
 ((staging.phys_name_ids.id_ark_identifier_content::jsonb IS NOT NULL))
                 ORDER BY staging.phys_name_ids.resourceinstanceid
+                
+                ;
+                
+
+/* ---------------------------------------------------------------------------------- */ 
+
+
+
+                INSERT INTO digital_resources.instances (
+                    resourceinstanceid, 
+graphid, 
+graphpublicationid, 
+principaluser_id
+                ) SELECT
+                    resourceinstanceid::uuid, 
+graphid::uuid, 
+graphpublicationid::uuid, 
+principaluser_id::integer
+                
+                FROM staging.dig_res_name_ids_rels
+                WHERE (staging.dig_res_name_ids_rels.resourceinstanceid NOT IN (SELECT resourceinstanceid FROM digital_resources.instances)) AND 
+((staging.dig_res_name_ids_rels.resourceinstanceid::uuid IS NOT NULL))
+                ORDER BY staging.dig_res_name_ids_rels.resourceinstanceid
+                
+                ;
+                
+
+
+                INSERT INTO digital_resources.name (
+                    resourceinstanceid, 
+tileid, 
+name_content, 
+name_type, 
+name_language, 
+nodegroupid
+                ) SELECT
+                    resourceinstanceid::uuid, 
+media_label_tileid::uuid, 
+media_label_name_content::jsonb, 
+media_label_name_type::uuid[], 
+media_label_name_language::uuid[], 
+media_label_nodegroupid::uuid
+                
+                FROM staging.dig_res_name_ids_rels
+                WHERE (staging.dig_res_name_ids_rels.media_label_tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.dig_res_name_ids_rels.media_label_tileid::uuid IS NOT NULL) AND 
+((staging.dig_res_name_ids_rels.media_label_name_content::jsonb IS NOT NULL))
+                ORDER BY staging.dig_res_name_ids_rels.resourceinstanceid
+                
+                ;
+                
+
+
+                INSERT INTO digital_resources.identifier (
+                    resourceinstanceid, 
+tileid, 
+identifier_content, 
+identifier_type, 
+nodegroupid
+                ) SELECT
+                    resourceinstanceid::uuid, 
+id_ark_tileid::uuid, 
+id_ark_identifier_content::jsonb, 
+id_ark_identifier_type::uuid[], 
+id_ark_nodegroupid::uuid
+                
+                FROM staging.dig_res_name_ids_rels
+                WHERE (staging.dig_res_name_ids_rels.id_ark_tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.dig_res_name_ids_rels.id_ark_tileid::uuid IS NOT NULL) AND 
+((staging.dig_res_name_ids_rels.id_ark_identifier_content::jsonb IS NOT NULL))
+                ORDER BY staging.dig_res_name_ids_rels.resourceinstanceid
+                
+                ;
+                
+
+
+                INSERT INTO digital_resources.type (
+                    resourceinstanceid, 
+tileid, 
+type, 
+nodegroupid
+                ) SELECT
+                    resourceinstanceid::uuid, 
+type_tileid::uuid, 
+type_type::uuid[], 
+type_nodegroupid::uuid
+                
+                FROM staging.dig_res_name_ids_rels
+                WHERE (staging.dig_res_name_ids_rels.type_tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.dig_res_name_ids_rels.type_tileid::uuid IS NOT NULL) AND 
+((staging.dig_res_name_ids_rels.type_type::uuid[] IS NOT NULL))
+                ORDER BY staging.dig_res_name_ids_rels.resourceinstanceid
+                
+                ;
+                
+
+
+                INSERT INTO digital_resources.file (
+                    resourceinstanceid, 
+tileid, 
+file, 
+nodegroupid
+                ) SELECT
+                    resourceinstanceid::uuid, 
+file_tileid::uuid, 
+file_file::jsonb, 
+file_nodegroupid::uuid
+                
+                FROM staging.dig_res_name_ids_rels
+                WHERE (staging.dig_res_name_ids_rels.file_tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.dig_res_name_ids_rels.file_tileid::uuid IS NOT NULL) AND 
+((staging.dig_res_name_ids_rels.file_file::jsonb IS NOT NULL))
+                ORDER BY staging.dig_res_name_ids_rels.resourceinstanceid
+                
+                ;
+                
+
+
+                    INSERT INTO files (
+                        fileid, 
+                        path, 
+                        tileid
+                    ) SELECT
+                        staging.dig_res_name_ids_rels.sql_file_id::uuid,
+                        staging.dig_res_name_ids_rels.sql_file_path,
+                        staging.dig_res_name_ids_rels.file_tileid::uuid
+                    FROM staging.dig_res_name_ids_rels
+                    WHERE staging.dig_res_name_ids_rels.file_tileid::uuid NOT IN (SELECT tileid FROM files);
+                    
+
+/* ---------------------------------------------------------------------------------- */ 
+
+
+
+                INSERT INTO physical_thing.instances (
+                    resourceinstanceid, 
+graphid, 
+graphpublicationid, 
+principaluser_id
+                ) SELECT
+                    resourceinstanceid::uuid, 
+graphid::uuid, 
+graphpublicationid::uuid, 
+principaluser_id::integer
+                
+                FROM staging.phys_rel_dig_res
+                WHERE (staging.phys_rel_dig_res.resourceinstanceid NOT IN (SELECT resourceinstanceid FROM physical_thing.instances)) AND 
+((staging.phys_rel_dig_res.resourceinstanceid::uuid IS NOT NULL))
+                ORDER BY staging.phys_rel_dig_res.resourceinstanceid
+                
+                ;
+                
+
+
+                INSERT INTO physical_thing.digital_reference (
+                    resourceinstanceid, 
+tileid, 
+digital_reference_type, 
+nodegroupid, 
+digital_source
+                ) SELECT
+                    resourceinstanceid::uuid, 
+type_tileid::uuid, 
+type_digital_reference_type::uuid, 
+type_nodegroupid::uuid, 
+
+                        coalesce(
+                            case jsonb_typeof(type_digital_source_related_objs) 
+                                when 'array' then type_digital_source_related_objs 
+                                else '[]'::jsonb end
+                            ) as type_digital_source_related_objs_1
+                        
+                
+                FROM staging.phys_rel_dig_res
+                WHERE (staging.phys_rel_dig_res.type_tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.phys_rel_dig_res.type_tileid::uuid IS NOT NULL) AND 
+((staging.phys_rel_dig_res.type_digital_reference_type::uuid IS NOT NULL) OR (staging.phys_rel_dig_res.type_digital_source_related_objs::jsonb IS NOT NULL))
+                ORDER BY staging.phys_rel_dig_res.resourceinstanceid
                 
                 ;
                 
