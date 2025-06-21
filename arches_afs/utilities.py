@@ -132,7 +132,7 @@ def make_file_dict(
     filesize,
     mimetype,
 ):
-    """Make a dictionary for the related object"""
+    """Make a dictionary for a file object"""
     obj = {
         "url": f"/files/{file_id}",
         "name": file_name,
@@ -147,5 +147,44 @@ def make_file_dict(
         "accepted": True,
         "renderer": "5e05aa2e-5db0-4922-8938-b4d2b7919733",
         "lastModified":1750097377754
+    }
+    return obj
+
+
+def make_descriptor_dict(
+    name,
+    description,
+    map_popup,
+):
+    """Make a dictionary for a resource instance descriptor"""
+    obj = {
+        "de": {"name":"","description":""},
+        "en": {
+            "name": name,
+            "description": description,
+            "map_popup": map_popup,
+        },
+        "fr": {"name":"","description":""},
+        "he":{"map_popup":"Undefined"},
+        "pt":{"name":"","description":""},
+        "en-US": {
+            "name": name,
+            "description": description,
+            "map_popup": map_popup,
+        }
+    }
+    return obj
+
+
+def make_name_dict(
+    name,
+):
+    """Make a dictionary for a resource instance descriptor"""
+    obj = {
+        "de":"",
+        "en":name,
+        "fr":"",
+        "pt":"",
+        "en-US":name,
     }
     return obj

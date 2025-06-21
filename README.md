@@ -58,6 +58,15 @@ docker exec -it arches python manage.py migrate afs
 It seems there's a problem with the node alias (or something) with various resource model name descriptors in the AfS application / package. Using the Arches user-interface, navigate to the "functions" and update the descriptor functions for the name. You may have better luck with the alias `<Name_content>` than with the all lowercase `<name_content>`
 
 
+```shell
+# Move the pictures to the correct spot
+docker exec -it arches bash -c 'cp /arches_data/afs_demo_images/*.jpg /arches_app/afs_demo/afs_demo/uploadedfiles/'
+
+# reindex
+docker exec -it arches python manage.py es reindex_database -rd
+```
+
+
 ### NOTE: Dump the database
 
 Here's a quick way to dump the Arches-AfS-Demo PostgreSQL database:
@@ -68,3 +77,26 @@ Here's a quick way to dump the Arches-AfS-Demo PostgreSQL database:
 docker exec -it arches bash -c "pg_dump -U postgres -h arches_db -F c -b afs_demo > '/arches_data/afs_demo.dump'"
 
 ```
+
+
+Export the package:
+
+```shell
+docker exec -it arches python manage.py packages -o create_package -d '/arches_data/afs_demo'
+# NOTE: Check to make sure the branches and resource_models actually exported (they sometimes don't get exported with the command above).
+# If branches are missing, do this:
+docker exec -it arches python manage.py packages -o export_graphs -d '/arches_data/afs_demo/graphs/branches' -g 'branches'
+
+# If resource_models are missing, do this:
+docker exec -it arches python manage.py packages -o export_graphs -d '/arches_data/afs_demo/graphs/resource_models' -g 'resource_models'
+
+# If you have business data you'd like to include in the new version 7 package:
+docker exec -it arches python manage.py packages -o export_business_data -d '/arches_data/afs_demo/business_data' -f 'json'
+
+# Update permissions so users outside of the Docker host can have full permissions to the package.
+docker exec -it arches bash -c 'chmod 777 -R /arches_data/afs_demo'
+
+docker exec -it arches bash -c 'cp /arches_data/afs_demo_images/*.jpg /arches_data/afs_demo/business_data/files'
+
+```
+

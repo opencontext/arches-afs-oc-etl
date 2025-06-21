@@ -132,11 +132,15 @@ $$ language plpgsql;
 
                 INSERT INTO physical_thing.instances (
                     resourceinstanceid, 
+descriptors, 
+name, 
 graphid, 
 graphpublicationid, 
 principaluser_id
                 ) SELECT
                     resourceinstanceid::uuid, 
+staging.phys_name_ids.instance_descriptor::jsonb, 
+staging.phys_name_ids.instance_name::jsonb, 
 graphid::uuid, 
 graphpublicationid::uuid, 
 principaluser_id::integer
@@ -226,11 +230,15 @@ id_ark_nodegroupid::uuid
 
                 INSERT INTO digital_resources.instances (
                     resourceinstanceid, 
+descriptors, 
+name, 
 graphid, 
 graphpublicationid, 
 principaluser_id
                 ) SELECT
                     resourceinstanceid::uuid, 
+staging.dig_res_name_ids_rels.instance_descriptor::jsonb, 
+staging.dig_res_name_ids_rels.instance_name::jsonb, 
 graphid::uuid, 
 graphpublicationid::uuid, 
 principaluser_id::integer

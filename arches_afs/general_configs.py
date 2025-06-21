@@ -91,6 +91,13 @@ PHYS_UUID = '9519cb4f-b25b-11e9-8c7b-a4d18cec433a'
 PHYS_MODEL_NAME = 'physical_thing'
 
 
+PHYS_NAME_TILE_DATA = {
+    "b9c1d7ab-b497-11e9-9ab7-a4d18cec433a": [PREFERRED_TERM_TYPE_UUID, PRIMARY_NAME_TYPE_UUID,], # type
+    "b9c1d570-b497-11e9-8315-a4d18cec433a": None, # source
+    "b9c1d69e-b497-11e9-8408-a4d18cec433a": None, # _label
+    "b9c1d400-b497-11e9-90ea-a4d18cec433a": [UNDET_LANG_VALUE_UUID,], # language
+    "b9c1d8a6-b497-11e9-876b-a4d18cec433a": TILE_DATA_COPY_FLAG,
+}
 
 
 PHYS_NAME_IDS_MAPPING_CONFIGS = {
@@ -111,7 +118,15 @@ PHYS_NAME_IDS_MAPPING_CONFIGS = {
                 ('graphid', UUID, PHYS_UUID,),
                 ('graphpublicationid', UUID, GRAPH_PUBLICATION_ID,),
                 ('principaluser_id', Integer, 1,),
-            ], 
+            ],
+            'make_descriptor': {
+                'raw_name_col': 'Item Label',
+                'description': 'A pottery sherd characterized by Neutron Activation Analysis (NAA)',
+                'map_popup': 'Recovered in excavation',
+            },
+            'make_name': {
+                'raw_name_col': 'Item Label',
+            },
         },
         {
             'raw_col': 'Item Label',
@@ -122,10 +137,11 @@ PHYS_NAME_IDS_MAPPING_CONFIGS = {
             'data_type': JSONB,
             'make_tileid': True,
             'default_values': [
-                ('name_type_', ARRAY(UUID), [PRIMARY_NAME_TYPE_UUID ],),
+                ('name_type_', ARRAY(UUID), [PREFERRED_TERM_TYPE_UUID, PRIMARY_NAME_TYPE_UUID ],),
                 ('name_language_', ARRAY(UUID), [UNDET_LANG_VALUE_UUID],),
                 ('nodegroupid', UUID, 'b9c1ced7-b497-11e9-a4da-a4d18cec433a',),
-            ], 
+            ],
+            'tile_data': PHYS_NAME_TILE_DATA, 
         },
         {
             'raw_col': 'URI',
@@ -166,6 +182,17 @@ DIG_RES_MODEL_NAME = 'digital_resources'
 
 IMPORT_IMAGES_CSV = os.path.join(DATA_DIR, 'oc-sherd-images.csv')
 
+DIG_RES_NAME_TILE_DATA = {
+    "d2fdc0d4-ca7a-11e9-95cf-a4d18cec433a": [PREFERRED_TERM_TYPE_UUID, PRIMARY_NAME_TYPE_UUID,], # type
+    "d2fdbc38-ca7a-11e9-a31a-a4d18cec433a": None, # source
+    "d2fdbeb8-ca7a-11e9-a294-a4d18cec433a": None, # _label
+    "d2fdb92b-ca7a-11e9-af41-a4d18cec433a": [ENG_VALUE_UUID,], # language
+    "d2fdc2fa-ca7a-11e9-8ffb-a4d18cec433a": TILE_DATA_COPY_FLAG,
+}
+
+
+
+
 DIG_RES_IDS_MAPPING_CONFIGS = {
     'model_id': DIG_RES_UUID,
     'staging_table': 'dig_res_name_ids_rels',
@@ -185,7 +212,15 @@ DIG_RES_IDS_MAPPING_CONFIGS = {
                 ('graphid', UUID, DIG_RES_UUID,),
                 ('graphpublicationid', UUID, GRAPH_PUBLICATION_ID,),
                 ('principaluser_id', Integer, 1,),
-            ], 
+            ],
+            'make_descriptor': {
+                'raw_name_col': 'media_label',
+                'description': 'Photo of a pottery sherd characterized by Neutron Activation Analysis (NAA)',
+                'map_popup': 'Recovered in excavation',
+            },
+            'make_name': {
+                'raw_name_col': 'media_label',
+            }, 
         },
         {
             'raw_col': 'media_label',
@@ -196,12 +231,12 @@ DIG_RES_IDS_MAPPING_CONFIGS = {
             'data_type': JSONB,
             'make_tileid': True,
             'default_values': [
-                ('name_type', ARRAY(UUID), [PRIMARY_NAME_TYPE_UUID ],),
+                ('name_type', ARRAY(UUID), [PREFERRED_TERM_TYPE_UUID, PRIMARY_NAME_TYPE_UUID ],),
                 ('name_language', ARRAY(UUID), [ENG_VALUE_UUID],),
                 ('nodegroupid', UUID, 'd2fdae3d-ca7a-11e9-ad84-a4d18cec433a',),
-            ], 
+            ],
+            'tile_data': DIG_RES_NAME_TILE_DATA,  
         },
-
         {
             'raw_col': 'media_ark',
             'targ_table': 'identifier',

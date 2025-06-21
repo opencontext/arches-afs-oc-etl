@@ -110,10 +110,6 @@ def prep_transformed_data(df, configs):
             dict_rows[raw_pk] = {}
         for mapping in configs.get('mappings'):
             raw_col = mapping.get('raw_col')
-            if (configs.get('staging_table') == 'rsci_materials_object_types') \
-               and (raw_col == 'object_type_value_uuids'):
-                # import pdb; pdb.set_trace()
-                pass
             stage_field_prefix = mapping.get('stage_field_prefix')
             value_transform = mapping.get('value_transform')
             targ_field = mapping.get('targ_field')
@@ -122,12 +118,31 @@ def prep_transformed_data(df, configs):
             col_data_types[stage_targ_field] = data_type
             if pd.isnull(row[raw_col]):
                 continue
+            if mapping.get('make_descriptor'):
+                # we need to make a descriptor object for this row.
+                des_config = mapping.get('make_descriptor')
+                descriptor_dict = utilities.make_descriptor_dict(
+                    name=row[des_config.get('raw_name_col')],
+                    description=des_config.get('description'),
+                    map_popup=des_config.get('map_popup'),
+                )
+                col_data_types['instance_descriptor'] = JSONB
+                dict_rows[raw_pk]['instance_descriptor'] = descriptor_dict
+            if mapping.get('make_name'):
+                # we need to make a descriptor object for this row.
+                name_config = mapping.get('make_name')
+                name_dict = utilities.make_name_dict(
+                    name=row[name_config.get('raw_name_col')],
+                )
+                col_data_types['instance_name'] = JSONB
+                dict_rows[raw_pk]['instance_name'] = name_dict
             act_raw_value = row[raw_col]
             # The transformed value will be the value that we will insert into the staging table and
             # then moved into Arches
             all_transformed_values = []
             transformed_value = make_transformed_value(act_raw_value, data_type, value_transform)
             if mapping.get('make_file'):
+                # We need to make a file object for this row.
                 file_config = mapping.get('make_file')
                 file_dict = utilities.make_file_dict(
                     file_name=row[file_config.get('raw_filename_col')],
@@ -342,6 +357,16 @@ def prepare_all_sql_inserts(
                     if start > 0:
                         # No need to make duplicate queries for resource instances. We'll do them all at once.
                         continue
+                if mapping.get('make_descriptor'):
+                    # make sure the descriptor object is added to the instance
+                    insert_fields.append(
+                        ('descriptors', f'{source_tab}.instance_descriptor::jsonb')
+                    )
+                if mapping.get('make_name'):
+                    # make sure the name object is added to the instance
+                    insert_fields.append(
+                        ('name', f'{source_tab}.instance_name::jsonb')
+                    )
                 
                 # We're turning off and not doing the limit_offset thing.
                 limit_offset = ''
