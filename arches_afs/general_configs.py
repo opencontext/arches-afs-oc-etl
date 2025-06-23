@@ -333,6 +333,33 @@ PHYS_REL_DIG_RES_MAPPING_CONFIGS = {
 }
 
 
+
+ELEMENTS_CSV = os.path.join(DATA_DIR, 'elements.csv')
+
+PHYS_ELEMENTS_MAPPING_CONFIGS = {
+    'model_id': PHYS_UUID,
+    'staging_table': 'phys_elements',
+    'model_staging_schema': PHYS_MODEL_NAME,
+    'raw_pk_col': 'item_uuid',
+    'mappings': [
+        {
+            'raw_col': 'item_uuid',
+            'targ_table': 'instances',
+            'stage_field_prefix': '',
+            'value_transform': copy_value,
+            'targ_field': 'resourceinstanceid',
+            'data_type': UUID,
+            'make_tileid': False,
+            'default_values': [
+                ('graphid', UUID, PHYS_UUID,),
+                ('graphpublicationid', UUID, GRAPH_PUBLICATION_ID,),
+                ('principaluser_id', Integer, 1,),
+            ],
+        },
+    ],
+}
+
+
 ALL_MAPPING_CONFIGS = [
     # Create resource instances for different models
     PHYS_NAME_IDS_MAPPING_CONFIGS,
