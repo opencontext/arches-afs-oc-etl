@@ -333,14 +333,19 @@ PHYS_REL_DIG_RES_MAPPING_CONFIGS = {
 }
 
 
-
+# the elements.csv file provides configuration to map between element symbos and
+# the IDs used by Arches
 ELEMENTS_CSV = os.path.join(DATA_DIR, 'elements.csv')
+
+# The oc-sherd-elements.csv file provides the lists of elements present in each sherd
+IMPORT_ELEMENTS_CSV = os.path.join(DATA_DIR, 'oc-sherd-elements.csv')
 
 PHYS_ELEMENTS_MAPPING_CONFIGS = {
     'model_id': PHYS_UUID,
     'staging_table': 'phys_elements',
     'model_staging_schema': PHYS_MODEL_NAME,
     'raw_pk_col': 'item_uuid',
+    'load_path': IMPORT_ELEMENTS_CSV,
     'mappings': [
         {
             'raw_col': 'item_uuid',
@@ -356,6 +361,18 @@ PHYS_ELEMENTS_MAPPING_CONFIGS = {
                 ('principaluser_id', Integer, 1,),
             ],
         },
+        {
+            'raw_col': 'elements',
+            'targ_table': 'material',
+            'stage_field_prefix': '',
+            'value_transform': copy_value,
+            'targ_field': 'material',
+            'data_type': ARRAY(UUID),
+            'make_tileid': True,
+            'default_values': [
+                ('nodegroupid', UUID, 'cbf9ba14-b31d-11e9-8529-a4d18cec433a',),
+            ],
+        },
     ],
 }
 
@@ -365,6 +382,7 @@ ALL_MAPPING_CONFIGS = [
     PHYS_NAME_IDS_MAPPING_CONFIGS,
     DIG_RES_IDS_MAPPING_CONFIGS,
     PHYS_REL_DIG_RES_MAPPING_CONFIGS,
+    PHYS_ELEMENTS_MAPPING_CONFIGS,
 ]
 
 

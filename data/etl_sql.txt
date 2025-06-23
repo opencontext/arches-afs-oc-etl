@@ -406,5 +406,49 @@ type_nodegroupid::uuid,
                 ;
                 
 
+/* ---------------------------------------------------------------------------------- */ 
+
+
+
+                INSERT INTO physical_thing.instances (
+                    resourceinstanceid, 
+graphid, 
+graphpublicationid, 
+principaluser_id
+                ) SELECT
+                    resourceinstanceid::uuid, 
+graphid::uuid, 
+graphpublicationid::uuid, 
+principaluser_id::integer
+                
+                FROM staging.phys_elements
+                WHERE (staging.phys_elements.resourceinstanceid NOT IN (SELECT resourceinstanceid FROM physical_thing.instances)) AND 
+((staging.phys_elements.resourceinstanceid::uuid IS NOT NULL))
+                ORDER BY staging.phys_elements.resourceinstanceid
+                
+                ;
+                
+
+
+                INSERT INTO physical_thing.material (
+                    resourceinstanceid, 
+tileid, 
+material, 
+nodegroupid
+                ) SELECT
+                    resourceinstanceid::uuid, 
+tileid::uuid, 
+material::uuid[], 
+nodegroupid::uuid
+                
+                FROM staging.phys_elements
+                WHERE (staging.phys_elements.tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.phys_elements.tileid::uuid IS NOT NULL) AND 
+((staging.phys_elements.material::uuid[] IS NOT NULL))
+                ORDER BY staging.phys_elements.resourceinstanceid
+                
+                ;
+                
+
 
 select * from refresh_geojson_geometries();
