@@ -340,6 +340,8 @@ ELEMENTS_CSV = os.path.join(DATA_DIR, 'elements.csv')
 # The oc-sherd-elements.csv file provides the lists of elements present in each sherd
 IMPORT_ELEMENTS_CSV = os.path.join(DATA_DIR, 'oc-sherd-elements.csv')
 
+MEMBER_OF_NODEGROUP_UUID = '63e49254-c444-11e9-afbe-a4d18cec433a'
+
 PHYS_ELEMENTS_MAPPING_CONFIGS = {
     'model_id': PHYS_UUID,
     'staging_table': 'phys_elements',
@@ -377,12 +379,80 @@ PHYS_ELEMENTS_MAPPING_CONFIGS = {
 }
 
 
+
+# The oc-sherd-elements.csv file provides the lists of elements present in each sherd
+IMPORT_PROJ_SETS_CSV = os.path.join(DATA_DIR, 'oc-sherd-projs-sets.csv')
+
+#preflabel value id for the pottery concept.
+POTTERY_VALUE_ID = '2b2efd5c-1cf5-46c4-8c2b-a2ac4bc3fd2d'
+
+
+PHYS_PROJ_SETS_CONFIGS = {
+    'model_id': PHYS_UUID,
+    'staging_table': 'phys_projs_sets_types',
+    'model_staging_schema': PHYS_MODEL_NAME,
+    'raw_pk_col': 'item_uuid',
+    'load_path': IMPORT_PROJ_SETS_CSV,
+    'mappings': [
+        {
+            'raw_col': 'item_uuid',
+            'targ_table': 'instances',
+            'stage_field_prefix': '',
+            'value_transform': copy_value,
+            'targ_field': 'resourceinstanceid',
+            'data_type': UUID,
+            'make_tileid': False,
+            'default_values': [
+                ('graphid', UUID, PHYS_UUID,),
+                ('graphpublicationid', UUID, GRAPH_PUBLICATION_ID,),
+                ('principaluser_id', Integer, 1,),
+            ],
+        },
+        {
+            'raw_col': 'type_uuids',
+            'targ_table': 'type',
+            'stage_field_prefix': '',
+            'value_transform': copy_value,
+            'targ_field': 'type',
+            'data_type': ARRAY(UUID),
+            'make_tileid': True,
+            'default_values': [
+                ('nodegroupid', UUID, '8ddfe3ab-b31d-11e9-aff0-a4d18cec433a',),
+            ],
+        },
+        {
+            'raw_col': 'member_of_nodegroupid',
+            'targ_table': 'member_of',
+            'stage_field_prefix': 'member_',
+            'value_transform': copy_value,
+            'targ_field': 'nodegroupid',
+            'data_type': UUID,
+            'make_tileid': True,
+            'default_values': [
+            ],
+            'related_resources': [
+                {
+                    'group_source_field': 'set_',
+                    'multi_value': True,
+                    'targ_field': 'member_of',
+                    'source_field_from_uuid': 'resourceinstanceid',
+                    'source_field_to_uuid': 'set_uuid',
+                    'rel_type_id': '31327077-8af5-4398-bbcc-e75675a9d37e',
+                    'inverse_rel_type_id': '6e7cf6a4-aba0-4a17-9a36-c69412212699',
+                },
+            ],
+        },
+    ],
+}
+
+
 ALL_MAPPING_CONFIGS = [
     # Create resource instances for different models
     PHYS_NAME_IDS_MAPPING_CONFIGS,
     DIG_RES_IDS_MAPPING_CONFIGS,
     PHYS_REL_DIG_RES_MAPPING_CONFIGS,
     PHYS_ELEMENTS_MAPPING_CONFIGS,
+    PHYS_PROJ_SETS_CONFIGS,
 ]
 
 

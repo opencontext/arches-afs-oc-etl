@@ -450,5 +450,76 @@ nodegroupid::uuid
                 ;
                 
 
+/* ---------------------------------------------------------------------------------- */ 
+
+
+
+                INSERT INTO physical_thing.instances (
+                    resourceinstanceid, 
+graphid, 
+graphpublicationid, 
+principaluser_id
+                ) SELECT
+                    resourceinstanceid::uuid, 
+graphid::uuid, 
+graphpublicationid::uuid, 
+principaluser_id::integer
+                
+                FROM staging.phys_projs_sets_types
+                WHERE (staging.phys_projs_sets_types.resourceinstanceid NOT IN (SELECT resourceinstanceid FROM physical_thing.instances)) AND 
+((staging.phys_projs_sets_types.resourceinstanceid::uuid IS NOT NULL))
+                ORDER BY staging.phys_projs_sets_types.resourceinstanceid
+                
+                ;
+                
+
+
+                INSERT INTO physical_thing.type (
+                    resourceinstanceid, 
+tileid, 
+type, 
+nodegroupid
+                ) SELECT
+                    resourceinstanceid::uuid, 
+tileid::uuid, 
+type::uuid[], 
+nodegroupid::uuid
+                
+                FROM staging.phys_projs_sets_types
+                WHERE (staging.phys_projs_sets_types.tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.phys_projs_sets_types.tileid::uuid IS NOT NULL) AND 
+((staging.phys_projs_sets_types.type::uuid[] IS NOT NULL))
+                ORDER BY staging.phys_projs_sets_types.resourceinstanceid
+                
+                ;
+                
+
+
+                INSERT INTO physical_thing.member_of (
+                    resourceinstanceid, 
+tileid, 
+nodegroupid, 
+member_of
+                ) SELECT
+                    resourceinstanceid::uuid, 
+member_tileid::uuid, 
+member_nodegroupid::uuid, 
+
+                        coalesce(
+                            case jsonb_typeof(member_set_related_objs) 
+                                when 'array' then member_set_related_objs 
+                                else '[]'::jsonb end
+                            ) as member_set_related_objs_1
+                        
+                
+                FROM staging.phys_projs_sets_types
+                WHERE (staging.phys_projs_sets_types.member_tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.phys_projs_sets_types.member_tileid::uuid IS NOT NULL) AND 
+((staging.phys_projs_sets_types.member_nodegroupid::uuid IS NOT NULL) OR (staging.phys_projs_sets_types.member_set_related_objs::jsonb IS NOT NULL))
+                ORDER BY staging.phys_projs_sets_types.resourceinstanceid
+                
+                ;
+                
+
 
 select * from refresh_geojson_geometries();
