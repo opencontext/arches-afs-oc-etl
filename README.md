@@ -49,7 +49,9 @@ Execute the following management command to "publish" the newly ETL'd records:
 
 ```shell
 # Do Migrations
-docker exec -it arches python manage.py migrate afs
+docker exec -it arches python manage.py migrate arches_for_science 0007_update_observation_types
+docker exec -it arches python manage.py migrate arches_for_science
+docker exec -it arches python manage.py packages -o load_package -s /arches_app/afs_demo
 ```
 
 
