@@ -347,6 +347,9 @@ PHYS_REL_DIG_RES_MAPPING_CONFIGS = {
 # the IDs used by Arches
 ELEMENTS_CSV = os.path.join(DATA_DIR, 'elements.csv')
 
+# This has citation information to include
+ELEMENTS_CITE_CSV = os.path.join(DATA_DIR, 'oc-sherd-material-cite.csv')
+
 # The oc-sherd-elements.csv file provides the lists of elements present in each sherd
 IMPORT_ELEMENTS_CSV = os.path.join(DATA_DIR, 'oc-sherd-elements.csv')
 

@@ -20,14 +20,18 @@ df_done = elements.prepare_save_elements_data()
 
 """
 
-def prep_elements_data(df, df_el):
+def prep_elements_data(df, df_el, df_cite):
     """Prepare elements data by making lists of elements present."""
     element_cols = [c for c in df.columns.tolist() if len(c) <= 2]
     data_rows = []
     for i, row in df.iterrows():
+        uuid = row['item_uuid']
+        cite_index = df_cite['item_uuid'] == uuid
+        statement_cite = df_cite[cite_index]['statement_cite'].iloc[0]
         act_row = {
-            'item_uuid': row['item_uuid'],
+            'item_uuid': uuid,
             'Item Label': row['Item Label'],
+            'statement_cite': statement_cite,
             'elements': [],
         }
         for col in element_cols:
@@ -48,10 +52,12 @@ def prepare_save_elements_data(
     raw_path=general_configs.RAW_IMPORT_CSV, 
     save_path=general_configs.IMPORT_ELEMENTS_CSV,
     elements_path=general_configs.ELEMENTS_CSV,
+    cite_path=general_configs.ELEMENTS_CITE_CSV,
 ):
     if df is None:
         df = pd.read_csv(raw_path)
     df_el = pd.read_csv(elements_path)
-    df_done = prep_elements_data(df, df_el)
+    df_cite = pd.read_csv(cite_path)
+    df_done = prep_elements_data(df, df_el, df_cite)
     df_done.to_csv(save_path, index=False)
     return df_done
