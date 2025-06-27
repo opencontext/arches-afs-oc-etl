@@ -7,6 +7,7 @@ from rdflib.namespace import RDFS, SKOS, DCTERMS
 
 
 from arches_afs import general_configs
+from arches_afs import concepts
 from arches_afs import utilities
 
 
@@ -24,6 +25,7 @@ def prep_elements_data(df, df_el, df_cite):
     """Prepare elements data by making lists of elements present."""
     element_cols = [c for c in df.columns.tolist() if len(c) <= 2]
     data_rows = []
+    valid_valueids = []
     for i, row in df.iterrows():
         uuid = row['item_uuid']
         cite_index = df_cite['item_uuid'] == uuid
@@ -40,6 +42,13 @@ def prep_elements_data(df, df_el, df_cite):
                 continue
             el_index = df_el['symbol'] == col
             valueid = df_el.loc[el_index, 'preflabel_valueid'].values[0]
+            if valueid not in valid_valueids:
+                valid = concepts.validate_prelabel_value_id(valueid)
+                if not valid:
+                    raise ValueError(
+                        f'No element {col} valueid: {valueid} in the db'
+                    )
+                valid_valueids.append(valueid)
             act_row['elements'].append(valueid)
         data_rows.append(act_row)
     df_done = pd.DataFrame(data_rows)
