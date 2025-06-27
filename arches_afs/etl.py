@@ -335,6 +335,9 @@ def prepare_all_sql_inserts(
         source_tab = f'{staging_schema}.{staging_table}'
         while start < total_count:
             for mapping in configs.get('mappings'):
+                if mapping.get('skip'):
+                    continue
+
                 insert_fields = []
                 not_null_fields = []
                 where_conditions = []

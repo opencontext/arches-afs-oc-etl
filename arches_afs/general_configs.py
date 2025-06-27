@@ -513,6 +513,7 @@ PLACE_MAPPING_CONFIGS = {
         },
         {
             'raw_col': 'place_name',
+            'skip': True,
             'targ_table': 'name',
             'stage_field_prefix': 'place_name_',
             'value_transform': make_lang_dict_value,
