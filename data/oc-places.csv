@@ -1,0 +1,4 @@
+place_uuid,place_name,place_statement,place_uri,geo_point
+3b3386a8-0867-4563-89b1-081f5e2b87b6,Sardis,An archaeological site in modern Türkiye (Turkey).,https://pleiades.stoa.org/places/550867,"{""type"": ""Point"", ""coordinates"": [28.040286, 38.488314]}"
+57f2bf9c-ce32-494e-9c16-67ad23d069cb,Kinet Höyük,"An archaeological site in modern Türkiye (Turkey), which was the ancient port of Issus/Nikopolis.",https://pleiades.stoa.org/places/658490,"{""type"": ""Point"", ""coordinates"": [36.1654, 36.85139]}"
+ac2067dd-a25d-4eda-9406-33089b1ee111,Troy,"An archaeological site in modern Türkiye (Turkey), with occupation ranging from the Bronze Age to the Roman period. Troy features as the central setting of Homer's Iliad.",https://pleiades.stoa.org/places/550595,"{""type"": ""Point"", ""coordinates"": [26.2384586227, 39.9574327844]}"

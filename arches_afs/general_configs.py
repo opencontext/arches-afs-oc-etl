@@ -330,6 +330,12 @@ PHYS_REL_DIG_RES_MAPPING_CONFIGS = {
             ],
         },
     ],
+    'keep_columns': [
+        {
+            'col': 'media_uuid',
+            'data_type': UUID,
+        },
+    ]
 }
 
 
@@ -380,7 +386,7 @@ PHYS_ELEMENTS_MAPPING_CONFIGS = {
 
 
 
-# The oc-sherd-elements.csv file provides the lists of elements present in each sherd
+# The oc-projs-sets.csv associates sherds with AfS projects and collections/sets
 IMPORT_PROJ_SETS_CSV = os.path.join(DATA_DIR, 'oc-sherd-projs-sets.csv')
 
 #preflabel value id for the pottery concept.
@@ -446,6 +452,181 @@ PHYS_PROJ_SETS_CONFIGS = {
 }
 
 
+#---------------------------------#
+#- PLACE CONFIGS -----------------#
+#---------------------------------#
+
+# The oc-places.csv describes place entities
+IMPORT_PLACES_CSV = os.path.join(DATA_DIR, 'oc-places.csv')
+
+# The oc-sherds-rel-places.csv
+IMPORT_REL_PHYS_PLACES = os.path.join(DATA_DIR, 'oc-sherds-rel-places.csv')
+
+PLACE_MODEL_UUID = 'cc8ed633-b25b-11e9-a13a-a4d18cec433a'
+PLACE_MODEL_NAME = 'place'
+
+PLACE_STATEMENT_TYPE_UUIDS = [
+    '72202a9f-1551-4cbc-9c7a-73c02321f3ea', # brief text
+    'df8e4cf6-9b0b-472f-8986-83d5b2ca28a0', # description
+]
+
+PLACE_MAPPING_CONFIGS = {
+    'model_id': PLACE_MODEL_UUID,
+    'staging_table': PLACE_MODEL_NAME,
+    'model_staging_schema': PLACE_MODEL_NAME,
+    'raw_pk_col': 'place_uuid',
+    'load_path': IMPORT_PLACES_CSV,
+    'mappings': [
+        {
+            'raw_col': 'place_uuid',
+            'targ_table': 'instances',
+            'stage_field_prefix': '',
+            'value_transform': copy_value,
+            'targ_field': 'resourceinstanceid',
+            'data_type': UUID,
+            'make_tileid': False,
+            'default_values': [
+                ('graphid', UUID, PLACE_MODEL_UUID,),
+                ('graphpublicationid', UUID, '8968cbff-382f-11f0-b297-020539808477',),
+                ('principaluser_id', Integer, 1,),
+            ], 
+        },
+        {
+            'raw_col': 'place_name',
+            'targ_table': 'name',
+            'stage_field_prefix': 'place_name_',
+            'value_transform': make_lang_dict_value,
+            'targ_field': 'content',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'default_values': [
+                ('type', ARRAY(UUID), [PREFERRED_TERM_TYPE_UUID],),
+                ('language', ARRAY(UUID), [ENG_VALUE_UUID],),
+                ('nodegroupid', UUID, '23e249e8-c071-11e9-ae9d-a4d18cec433a',),
+            ],
+        },
+        {
+            'raw_col': 'place_statement',
+            'targ_table': 'statement',
+            'stage_field_prefix': 'statement_',
+            'value_transform': make_lang_dict_value,
+            'targ_field': 'content',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'default_values': [
+                ('type', ARRAY(UUID),  PLACE_STATEMENT_TYPE_UUIDS,),
+                ('language', ARRAY(UUID), [ENG_VALUE_UUID],),
+                ('nodegroupid', UUID, '23e25605-c071-11e9-9d09-a4d18cec433a',),
+            ],
+        },
+        {
+            'raw_col': 'place_uri',
+            'targ_table': 'external_uri',
+            'stage_field_prefix': 'place_uri_',
+            'value_transform': make_lang_dict_value,
+            'targ_field': 'external_uri',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'default_values': [
+                ('nodegroupid', UUID, '75da0923-d325-11e9-8b03-a4d18cec433a',),
+            ], 
+        },
+        {
+            'raw_col': 'geo_point',
+            'targ_table': 'defined_by',
+            'stage_field_prefix': 'geo_point_',
+            'value_transform': copy_value,
+            'targ_field': 'defined_by',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'source_geojson': True,
+            'default_values': [
+                ('nodegroupid', UUID, '6c874bcf-c071-11e9-9605-a4d18cec433a',),
+            ], 
+        },
+    ],
+}
+
+
+ADD_TO_COLLECTION_TYPE_VALUE_IDS = ['c30c8618-d9bd-4cab-a934-668ad92b1969',]
+
+PHYS_REL_PLACES_MAPPING_CONFIGS = {
+    'model_id': PHYS_UUID,
+    'staging_table': 'phys_rel_places',
+    'model_staging_schema': PHYS_MODEL_NAME,
+    'raw_pk_col': 'item_uuid',
+    'load_path': IMPORT_REL_PHYS_PLACES,
+    'mappings': [
+        {
+            'raw_col': 'item_uuid',
+            'targ_table': 'instances',
+            'stage_field_prefix': '',
+            'value_transform': copy_value,
+            'targ_field': 'resourceinstanceid',
+            'data_type': UUID,
+            'make_tileid': False,
+            'default_values': [
+                ('graphid', UUID, PHYS_UUID,),
+                ('graphpublicationid', UUID, GRAPH_PUBLICATION_ID,),
+                ('principaluser_id', Integer, 1,),
+            ], 
+        },
+        {
+            'raw_col': 'add_collection_types_uuid',
+            'targ_table': 'addition_to_collection',
+            'stage_field_prefix': 'add_col_',
+            'value_transform': copy_value,
+            'targ_field': 'addition_to_collection_type',
+            'data_type': ARRAY(UUID),
+            'make_tileid': True,
+            'default_values': [
+                ('nodegroupid', UUID, '57f25133-d2bd-11e9-9131-a4d18cec433a',),
+            ],
+            'related_resources': [
+                {
+                    'group_source_field': 'add_col_',
+                    'multi_value': True,
+                    'targ_field': 'addition_to_collection_added_to',
+                    'source_field_from_uuid': 'resourceinstanceid',
+                    'source_field_to_uuid': 'set_uuid',
+                    'rel_type_id': '',
+                    'inverse_rel_type_id': '',
+                    'rel_nodeid': '7f13dbde-d2bd-11e9-9adc-a4d18cec433a',
+                },
+                {
+                    'group_source_field': 'add_col_',
+                    'multi_value': True,
+                    'targ_field': 'addition_to_collection_location',
+                    'source_field_from_uuid': 'resourceinstanceid',
+                    'source_field_to_uuid': 'place_uuid',
+                    'rel_type_id': '',
+                    'inverse_rel_type_id': '',
+                    'rel_nodeid': '57f2d840-d2bd-11e9-a411-a4d18cec433a',
+                },
+            ],
+        },
+        {
+            'raw_col': 'add_statement',
+            'targ_table': 'addition_to_collection_statement',
+            'stage_field_prefix': 'add_stmt_',
+            'value_transform': make_lang_dict_value,
+            'targ_field': 'addition_to_collection_statement_content',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'default_values': [
+                ('addition_to_collection_statement_type', ARRAY(UUID),  PLACE_STATEMENT_TYPE_UUIDS,),
+                ('addition_to_collection_statement_language', ARRAY(UUID), [ENG_VALUE_UUID],),
+                ('nodegroupid', UUID, '57f22c99-d2bd-11e9-8df9-a4d18cec433a',),
+            ],
+            'related_tileid': {
+                'source_tile_field': 'add_col_tileid',
+                'targ_tile_field': 'addition_to_collection',
+            },
+        },
+    ],
+}
+
+
 ALL_MAPPING_CONFIGS = [
     # Create resource instances for different models
     PHYS_NAME_IDS_MAPPING_CONFIGS,
@@ -453,6 +634,8 @@ ALL_MAPPING_CONFIGS = [
     PHYS_REL_DIG_RES_MAPPING_CONFIGS,
     PHYS_ELEMENTS_MAPPING_CONFIGS,
     PHYS_PROJ_SETS_CONFIGS,
+    PLACE_MAPPING_CONFIGS,
+    PHYS_REL_PLACES_MAPPING_CONFIGS,
 ]
 
 
@@ -464,5 +647,8 @@ ARCHES_REL_VIEW_PREP_SQLS = [
     """,
     f"""
     SELECT __arches_create_resource_model_views('{DIG_RES_UUID}');
+    """,
+    f"""
+    SELECT __arches_create_resource_model_views('{PLACE_MODEL_UUID}');
     """,
 ]

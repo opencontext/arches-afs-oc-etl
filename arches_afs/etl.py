@@ -239,6 +239,14 @@ def prep_transformed_data(df, configs):
                 else:
                     tile_data[key] = copy.deepcopy(val)
             dict_rows[raw_pk][tile_data_col] = tile_data
+        # We may want to store columns in the staging table even if they are not
+        # directly used for mappings.
+        for keep_dict in configs.get('keep_columns', []):
+            keep_col = keep_dict.get('col')
+            col_data_types[keep_col] = keep_dict.get('data_type')
+            if pd.isnull(row[keep_col ]):
+                continue
+            dict_rows[raw_pk][keep_col] = row[keep_col]
     rows = [dict(copy.deepcopy(row)) for _, row in dict_rows.items()]
     df_staging = pd.DataFrame(rows)
     return df_staging, col_data_types

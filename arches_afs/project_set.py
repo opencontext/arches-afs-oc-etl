@@ -43,15 +43,15 @@ AFS_PROJ_TO_SET_UUIDS = {
 
 AFS_PROJ_TO_STATEMENTS = {
     '44ee8aed-d3cd-4ec7-b7d3-a9926e03a0d0': (
-        'This sherd was recovered during archaeological excavations at Sardis ',
+        'This sherd was recovered during archaeological excavations at Sardis '
         'and the was selected for study using Neutron Activation Analysis (NAA). '
     ),
     '62881482-c448-4dfc-b142-6db23c52ec8d': (
-        'This sherd was recovered during archaeological excavations at Kinet Höyük ',
+        'This sherd was recovered during archaeological excavations at Kinet Höyük '
         'and the was selected for study using Neutron Activation Analysis (NAA). '
     ),
     '2bc523c8-6d65-47c1-ad1e-1a8efd974c42': (
-        'This sherd was recovered during archaeological excavations at Troy ',
+        'This sherd was recovered during archaeological excavations at Troy '
         'and the was selected for study using Neutron Activation Analysis (NAA). '
     ),
 }
