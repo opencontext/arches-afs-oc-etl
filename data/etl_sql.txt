@@ -438,17 +438,23 @@ principaluser_id::integer
                     resourceinstanceid, 
 tileid, 
 material, 
-nodegroupid
+material_data_assignment_statement_type, 
+material_data_assignment_statement_language, 
+nodegroupid, 
+material_data_assignment_statement_content
                 ) SELECT
                     resourceinstanceid::uuid, 
-tileid::uuid, 
-material::uuid[], 
-nodegroupid::uuid
+mat_tileid::uuid, 
+mat_material::uuid[], 
+mat_material_data_assignment_statement_type::uuid[], 
+mat_material_data_assignment_statement_language::uuid[], 
+mat_nodegroupid::uuid, 
+mat_material_data_assignment_statement_content::jsonb
                 
                 FROM staging.phys_elements
-                WHERE (staging.phys_elements.tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
-(staging.phys_elements.tileid::uuid IS NOT NULL) AND 
-((staging.phys_elements.material::uuid[] IS NOT NULL))
+                WHERE (staging.phys_elements.mat_tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.phys_elements.mat_tileid::uuid IS NOT NULL) AND 
+((staging.phys_elements.mat_material::uuid[] IS NOT NULL) OR (staging.phys_elements.mat_material_data_assignment_statement_content::jsonb IS NOT NULL))
                 ORDER BY staging.phys_elements.resourceinstanceid
                 
                 ;
@@ -715,6 +721,98 @@ add_col_tileid::uuid
 (staging.phys_rel_places.add_stmt_tileid::uuid IS NOT NULL) AND 
 ((staging.phys_rel_places.add_stmt_addition_to_collection_statement_content::jsonb IS NOT NULL))
                 ORDER BY staging.phys_rel_places.resourceinstanceid
+                
+                ;
+                
+
+/* ---------------------------------------------------------------------------------- */ 
+
+
+
+                INSERT INTO physical_thing.instances (
+                    resourceinstanceid, 
+graphid, 
+graphpublicationid, 
+principaluser_id
+                ) SELECT
+                    resourceinstanceid::uuid, 
+graphid::uuid, 
+graphpublicationid::uuid, 
+principaluser_id::integer
+                
+                FROM staging.phys_production
+                WHERE (staging.phys_production.resourceinstanceid NOT IN (SELECT resourceinstanceid FROM physical_thing.instances)) AND 
+((staging.phys_production.resourceinstanceid::uuid IS NOT NULL))
+                ORDER BY staging.phys_production.resourceinstanceid
+                
+                ;
+                
+
+
+                INSERT INTO physical_thing.production_ (
+                    resourceinstanceid, 
+tileid, 
+nodegroupid
+                ) SELECT
+                    resourceinstanceid::uuid, 
+prod_tileid::uuid, 
+prod_nodegroupid::uuid
+                
+                FROM staging.phys_production
+                WHERE (staging.phys_production.prod_tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.phys_production.prod_tileid::uuid IS NOT NULL) AND 
+((staging.phys_production.prod_nodegroupid::uuid IS NOT NULL))
+                ORDER BY staging.phys_production.resourceinstanceid
+                
+                ;
+                
+
+
+                INSERT INTO physical_thing.production_statement (
+                    resourceinstanceid, 
+tileid, 
+production_statement_content, 
+production_statement_type, 
+production_statement_language, 
+nodegroupid, 
+production_
+                ) SELECT
+                    resourceinstanceid::uuid, 
+prod_stmt_tileid::uuid, 
+prod_stmt_production_statement_content::jsonb, 
+prod_stmt_production_statement_type::uuid[], 
+prod_stmt_production_statement_language::uuid[], 
+prod_stmt_nodegroupid::uuid, 
+prod_tileid::uuid
+                
+                FROM staging.phys_production
+                WHERE (staging.phys_production.prod_stmt_tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.phys_production.prod_stmt_tileid::uuid IS NOT NULL) AND 
+((staging.phys_production.prod_stmt_production_statement_content::jsonb IS NOT NULL))
+                ORDER BY staging.phys_production.resourceinstanceid
+                
+                ;
+                
+
+
+                INSERT INTO physical_thing.production_time (
+                    resourceinstanceid, 
+tileid, 
+production_time_edtf, 
+nodegroupid, 
+production_
+                ) SELECT
+                    resourceinstanceid::uuid, 
+prod_time_tileid::uuid, 
+prod_time_production_time_edtf::text, 
+prod_time_nodegroupid::uuid, 
+prod_tileid::uuid
+                
+                FROM staging.phys_production
+                WHERE (staging.phys_production.prod_time_tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
+(staging.phys_production.prod_time_tileid::uuid IS NOT NULL) AND 
+((staging.phys_production.prod_time_production_time_edtf::text IS NOT NULL))
+                ORDER BY staging.phys_production.resourceinstanceid
                 
                 ;
                 

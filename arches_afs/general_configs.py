@@ -44,6 +44,10 @@ ALT_NAME_TYPE_UUID = '0798bf2c-ab07-43d7-81f4-f1e2d20251a1'
 
 PRIMARY_ID_TYPE_VALUE_UUID = 'ae7f2811-3fee-4624-bc74-9451bd05be2d'
 
+# For ARK identifier types
+ARK_TYPE_VALUE_UUID = '4dad7619-c86e-4490-9036-d48683c179b4'
+
+URL_TYPE_VALUE_UUID = 'f32d0944-4229-4792-a33c-aadc2b181dc7'
 
 
 TILE_DATA_COPY_FLAG = '----COPY:stage_targ_field----'
@@ -152,7 +156,7 @@ PHYS_NAME_IDS_MAPPING_CONFIGS = {
             'data_type': JSONB,
             'make_tileid': True,
             'default_values': [
-                ('identifier_type', ARRAY(UUID), [PRIMARY_ID_TYPE_VALUE_UUID],),
+                ('identifier_type', ARRAY(UUID), [URL_TYPE_VALUE_UUID],),
                 ('nodegroupid', UUID, '22c150ca-b498-11e9-9adc-a4d18cec433a',),
             ],
         },
@@ -165,7 +169,7 @@ PHYS_NAME_IDS_MAPPING_CONFIGS = {
             'data_type': JSONB,
             'make_tileid': True,
             'default_values': [
-                ('identifier_type', ARRAY(UUID),  [PRIMARY_ID_TYPE_VALUE_UUID],),
+                ('identifier_type', ARRAY(UUID),  [ARK_TYPE_VALUE_UUID],),
                 ('nodegroupid', UUID, '22c150ca-b498-11e9-9adc-a4d18cec433a',),
             ],
         },
@@ -246,7 +250,7 @@ DIG_RES_IDS_MAPPING_CONFIGS = {
             'data_type': JSONB,
             'make_tileid': True,
             'default_values': [
-                ('identifier_type', ARRAY(UUID),  [PRIMARY_ID_TYPE_VALUE_UUID],),
+                ('identifier_type', ARRAY(UUID),  [ARK_TYPE_VALUE_UUID],),
                 ('nodegroupid', UUID, '22c150ca-b498-11e9-9adc-a4d18cec433a',),
             ],
         },
@@ -348,6 +352,8 @@ IMPORT_ELEMENTS_CSV = os.path.join(DATA_DIR, 'oc-sherd-elements.csv')
 
 MEMBER_OF_NODEGROUP_UUID = '63e49254-c444-11e9-afbe-a4d18cec433a'
 
+CITE_STATEMENT_TYPE_VALUE_ID = '49d660f8-4bde-401e-b4a8-2defa5a5d1db'
+
 PHYS_ELEMENTS_MAPPING_CONFIGS = {
     'model_id': PHYS_UUID,
     'staging_table': 'phys_elements',
@@ -372,13 +378,24 @@ PHYS_ELEMENTS_MAPPING_CONFIGS = {
         {
             'raw_col': 'elements',
             'targ_table': 'material',
-            'stage_field_prefix': '',
+            'stage_field_prefix': 'mat_',
             'value_transform': copy_value,
             'targ_field': 'material',
             'data_type': ARRAY(UUID),
             'make_tileid': True,
             'default_values': [
+                ('material_data_assignment_statement_type', ARRAY(UUID), [CITE_STATEMENT_TYPE_VALUE_ID],),
+                ('material_data_assignment_statement_language', ARRAY(UUID), [ENG_VALUE_UUID],),
                 ('nodegroupid', UUID, 'cbf9ba14-b31d-11e9-8529-a4d18cec433a',),
+            ],
+            'tile_other_fields': [
+                # Mappings for other fields to include in the same tile
+                {
+                    'raw_col': 'statement_cite',
+                    'targ_field': 'material_data_assignment_statement_content',
+                    'data_type': JSONB,
+                    'value_transform': make_lang_dict_value,
+                },
             ],
         },
     ],
@@ -626,6 +643,77 @@ PHYS_REL_PLACES_MAPPING_CONFIGS = {
     ],
 }
 
+# We're using the same production statement types. Brief text and description
+PRODUCTION_STATEMENT_TYPE_UUIDS = PLACE_STATEMENT_TYPE_UUIDS
+
+PHYS_PRODUCTION_MAPPING_CONFIGS = {
+    'model_id': PHYS_UUID,
+    'staging_table': 'phys_production',
+    'model_staging_schema': PHYS_MODEL_NAME,
+    'raw_pk_col': 'item_uuid',
+    'mappings': [
+        {
+            'raw_col': 'item_uuid',
+            'targ_table': 'instances',
+            'stage_field_prefix': '',
+            'value_transform': copy_value,
+            'targ_field': 'resourceinstanceid',
+            'data_type': UUID,
+            'make_tileid': False,
+            'default_values': [
+                ('graphid', UUID, PHYS_UUID,),
+                ('graphpublicationid', UUID, GRAPH_PUBLICATION_ID,),
+                ('principaluser_id', Integer, 1,),
+            ], 
+        },
+        {
+            'raw_col': 'production_nodegroupid',
+            'targ_table': 'production_',
+            'stage_field_prefix': 'prod_',
+            'value_transform': copy_value,
+            'targ_field': 'nodegroupid',
+            'data_type': UUID,
+            'make_tileid': True,
+            'default_values': [
+            ],
+        },
+        {
+            'raw_col': 'production_statement',
+            'targ_table': 'production_statement',
+            'stage_field_prefix': 'prod_stmt_',
+            'value_transform': make_lang_dict_value,
+            'targ_field': 'production_statement_content',
+            'data_type': JSONB,
+            'make_tileid': True,
+            'default_values': [
+                ('production_statement_type', ARRAY(UUID),  PRODUCTION_STATEMENT_TYPE_UUIDS,),
+                ('production_statement_language', ARRAY(UUID), [ENG_VALUE_UUID],),
+                ('nodegroupid', UUID, '6c1d4051-bee9-11e9-a4d2-a4d18cec433a',),
+            ],
+            'related_tileid': {
+                'source_tile_field': 'prod_tileid',
+                'targ_tile_field': 'production_',
+            },
+        },
+        {
+            'raw_col': 'production_edtf',
+            'targ_table': 'production_time',
+            'stage_field_prefix': 'prod_time_',
+            'value_transform': copy_value,
+            'targ_field': 'production_time_edtf',
+            'data_type': Text,
+            'make_tileid': True,
+            'default_values': [
+                ('nodegroupid', UUID, 'cc15718f-b497-11e9-a9e8-a4d18cec433a',),
+            ],
+            'related_tileid': {
+                'source_tile_field': 'prod_tileid',
+                'targ_tile_field': 'production_',
+            },
+        },
+    ],
+}
+
 
 ALL_MAPPING_CONFIGS = [
     # Create resource instances for different models
@@ -636,6 +724,7 @@ ALL_MAPPING_CONFIGS = [
     PHYS_PROJ_SETS_CONFIGS,
     PLACE_MAPPING_CONFIGS,
     PHYS_REL_PLACES_MAPPING_CONFIGS,
+    PHYS_PRODUCTION_MAPPING_CONFIGS,
 ]
 
 
