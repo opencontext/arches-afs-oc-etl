@@ -555,31 +555,6 @@ principaluser_id::integer
                 
 
 
-                INSERT INTO place.name (
-                    resourceinstanceid, 
-tileid, 
-content, 
-type, 
-language, 
-nodegroupid
-                ) SELECT
-                    resourceinstanceid::uuid, 
-place_name_tileid::uuid, 
-place_name_content::jsonb, 
-place_name_type::uuid[], 
-place_name_language::uuid[], 
-place_name_nodegroupid::uuid
-                
-                FROM staging.place
-                WHERE (staging.place.place_name_tileid::uuid NOT IN (SELECT tileid FROM tiles)) AND 
-(staging.place.place_name_tileid::uuid IS NOT NULL) AND 
-((staging.place.place_name_content::jsonb IS NOT NULL))
-                ORDER BY staging.place.resourceinstanceid
-                
-                ;
-                
-
-
                 INSERT INTO place.statement (
                     resourceinstanceid, 
 tileid, 
