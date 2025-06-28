@@ -1,4 +1,5 @@
 import json
+import os
 import pandas as pd
 import uuid as GenUUID
 
@@ -21,6 +22,26 @@ df_done = elements.prepare_save_elements_data()
 
 """
 
+
+def update_citation_to_html(
+    cite_path=general_configs.ELEMENTS_CITE_CSV,
+):
+    """A quick and dirty HTML update"""
+    imp_path = os.path.join(general_configs.DATA_DIR, 'phys_elements.csv')
+    df = pd.read_csv(imp_path)
+    df_cite = pd.read_csv(cite_path)
+    for i, row in df.iterrows():
+        uuid = row['resourceinstanceid']
+        tileid = row['mat_tileid']
+        cite_index = df_cite['item_uuid'] == uuid
+        cite_html = df_cite[cite_index]['statement_cite_html'].iloc[0]
+        cite_dict = general_configs.make_lang_dict_value(cite_html)
+        cite_json = json.dumps(cite_dict, ensure_ascii=False)
+        df.at[i, 'mat_material_data_assignment_statement_content'] = cite_json
+    df.to_csv(imp_path, index=False)
+
+
+
 def prep_elements_data(df, df_el, df_cite):
     """Prepare elements data by making lists of elements present."""
     element_cols = [c for c in df.columns.tolist() if len(c) <= 2]
@@ -29,7 +50,7 @@ def prep_elements_data(df, df_el, df_cite):
     for i, row in df.iterrows():
         uuid = row['item_uuid']
         cite_index = df_cite['item_uuid'] == uuid
-        statement_cite = df_cite[cite_index]['statement_cite'].iloc[0]
+        statement_cite = df_cite[cite_index]['statement_cite_html'].iloc[0]
         act_row = {
             'item_uuid': uuid,
             'Item Label': row['Item Label'],
