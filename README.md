@@ -76,7 +76,7 @@ Here's a quick way to dump the Arches-AfS-Demo PostgreSQL database:
 ```shell
 
 # Make a database dump
-docker exec -it arches bash -c "pg_dump -U postgres -h arches_db -F c -b afs_demo > '/arches_data/afs_demo.dump'"
+docker exec -it arches bash -c "pg_dump -U postgres -h arches_db -F c -b afs_demo > '/arches_data/afs_demo_works.dump'"
 
 ```
 
