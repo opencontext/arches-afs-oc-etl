@@ -248,3 +248,88 @@ ALTER TABLE TILES ENABLE TRIGGER __arches_trg_update_spatial_attributes;
 POSTGRESQL_AFTER_ETL_FUNCTION = """
 select * from refresh_geojson_geometries();
 """
+
+
+FIX_PHYS_PLACE_RESOURCE_LINK = """
+/*
+graphid = 'cc8ed633-b25b-11e9-a13a-a4d18cec433a' (place model)
+graphid = '9519cb4f-b25b-11e9-8c7b-a4d18cec433a' (physical thing model)
+
+nodeid = '7f13dbde-d2bd-11e9-9adc-a4d18cec433a' ('addition_to_collection_added_to')
+nodeid = '57f2d840-d2bd-11e9-a411-a4d18cec433a' ('addition_to_collection_location')
+*/
+
+
+
+SELECT * 
+FROM public.resource_x_resource AS r_x_r
+JOIN public.resource_instances AS r_to ON r_x_r.resourceinstanceidto = r_to.resourceinstanceid
+JOIN public.resource_instances AS r_from ON r_x_r.resourceinstanceidfrom = r_from.resourceinstanceid
+WHERE r_to.graphid = 'cc8ed633-b25b-11e9-a13a-a4d18cec433a'
+AND r_from.graphid = '9519cb4f-b25b-11e9-8c7b-a4d18cec433a'
+AND r_x_r.nodeid = '7f13dbde-d2bd-11e9-9adc-a4d18cec433a'
+
+
+
+/* UPDATE the resource_x_resource nodeid to be correct */
+
+UPDATE public.resource_x_resource AS r_x_r_up
+SET nodeid = '57f2d840-d2bd-11e9-a411-a4d18cec433a'
+FROM public.resource_x_resource AS r_x_r
+JOIN public.resource_instances AS r_to ON r_x_r.resourceinstanceidto = r_to.resourceinstanceid
+JOIN public.resource_instances AS r_from ON r_x_r.resourceinstanceidfrom = r_from.resourceinstanceid
+WHERE r_to.graphid = 'cc8ed633-b25b-11e9-a13a-a4d18cec433a'
+AND r_from.graphid = '9519cb4f-b25b-11e9-8c7b-a4d18cec433a'
+AND r_x_r.nodeid = '7f13dbde-d2bd-11e9-9adc-a4d18cec433a'
+AND r_x_r_up.resourcexid = r_x_r.resourcexid
+
+
+
+
+
+
+
+SELECT t_r.tileid, r_x_r.resourcexid , t_r.tiledata, r_from.name AS from_name, r_to.name AS to_name 
+FROM public.tiles AS t_r
+JOIN public.resource_x_resource AS r_x_r ON r_x_r.tileid = t_r.tileid
+JOIN public.resource_instances AS r_to ON r_x_r.resourceinstanceidto = r_to.resourceinstanceid
+JOIN public.resource_instances AS r_from ON r_x_r.resourceinstanceidfrom = r_from.resourceinstanceid
+WHERE r_to.graphid = 'cc8ed633-b25b-11e9-a13a-a4d18cec433a'
+AND r_from.graphid = '9519cb4f-b25b-11e9-8c7b-a4d18cec433a'
+AND  t_r.nodegroupid = '57f25133-d2bd-11e9-9131-a4d18cec433a'
+AND t_r.tiledata::jsonb ? '7f13dbde-d2bd-11e9-9adc-a4d18cec433a'
+AND jsonb_array_length(t_r.tiledata->'7f13dbde-d2bd-11e9-9adc-a4d18cec433a') >= 2
+;
+
+
+
+
+
+
+
+
+UPDATE public.tiles AS t_up
+SET tiledata = jsonb_set(
+    jsonb_set(
+        t_up.tiledata,
+        '{7f13dbde-d2bd-11e9-9adc-a4d18cec433a}',
+        (t_up.tiledata->'7f13dbde-d2bd-11e9-9adc-a4d18cec433a') - 1 -- Remove the second element from 'a_key'
+    ),
+    '{57f2d840-d2bd-11e9-a411-a4d18cec433a}',
+    jsonb_build_array(((t_up.tiledata->'7f13dbde-d2bd-11e9-9adc-a4d18cec433a')->>1)::jsonb)::jsonb -- Create a new array with the second element of 'a_key'
+)
+FROM public.tiles AS t_r
+JOIN public.resource_x_resource AS r_x_r ON r_x_r.tileid = t_r.tileid
+JOIN public.resource_instances AS r_to ON r_x_r.resourceinstanceidto = r_to.resourceinstanceid
+JOIN public.resource_instances AS r_from ON r_x_r.resourceinstanceidfrom = r_from.resourceinstanceid
+WHERE r_to.graphid = 'cc8ed633-b25b-11e9-a13a-a4d18cec433a'
+AND r_from.graphid = '9519cb4f-b25b-11e9-8c7b-a4d18cec433a'
+AND  t_r.nodegroupid = '57f25133-d2bd-11e9-9131-a4d18cec433a'
+AND t_r.tiledata::jsonb ? '7f13dbde-d2bd-11e9-9adc-a4d18cec433a'
+AND t_r.tileid = t_up.tileid
+AND jsonb_array_length(t_up.tiledata->'7f13dbde-d2bd-11e9-9adc-a4d18cec433a') >= 2
+
+;
+
+
+"""
