@@ -615,7 +615,7 @@ PHYS_REL_PLACES_MAPPING_CONFIGS = {
                     'rel_nodeid': '7f13dbde-d2bd-11e9-9adc-a4d18cec433a',
                 },
                 {
-                    'group_source_field': 'add_col_',
+                    'group_source_field': 'add_col_place_',
                     'multi_value': True,
                     'targ_field': 'addition_to_collection_location',
                     'source_field_from_uuid': 'resourceinstanceid',
